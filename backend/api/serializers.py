@@ -13,6 +13,18 @@ class ClinicianSerializer(serializers.Serializer):
     def create(self, validated_data):
         return Clinician.objects.create(**validated_data)
     
+    # checks if NPI is length of 10 digits
+    def validate_npi(self, value):
+        if len(str(value)) != 10:
+            raise serializers.ValidationError("NPI value is not 10 digits long")
+        return value
+
+    # ensures email is unique for clinician
+    def validate_email(self, value):
+        if Clinician.objects.filter(email=value):
+            raise serializers.ValidationError("Email is already registered for a clinician")
+        return value
+    
     # updates the clinician object with new data
     def update(self, instance, validated_data):
         instance.first_name = validated_data.get('first_name', instance.first_name)
@@ -31,9 +43,15 @@ class PatientSerializer(serializers.Serializer):
     email = serializers.EmailField()
     address = serializers.CharField(max_length=200)
 
+    # ensures email is unique for patient
+    def validate_email(self, value):
+        if Patient.objects.filter(email=value):
+            raise serializers.ValidationError("Email is already registered for a patient")
+        return value
+
     # creates and returns the patient object
     def create(self, validated_data):
-        return Clinician.objects.create(**validated_data)
+        return Patient.objects.create(**validated_data)
     
     # updates the patient object with new data
     def update(self, instance, validated_data):
@@ -49,6 +67,9 @@ class AppointmentSerializer(serializers.Serializer):
     id = serializers.ReadOnlyField()
     provider = serializers.SerializerMethodField()
     client = serializers.SerializerMethodField()
+    date = serializers.DateField()
+    time = serializers.TimeField()
+    status = serializers.ChoiceField(choices=Appointment.APPOINTMENT_STATUSES)
 
     # returns the nested clinician object
     def get_provider(self, obj):

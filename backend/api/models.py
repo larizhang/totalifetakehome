@@ -15,7 +15,15 @@ class Patient(models.Model):
     address = models.CharField(max_length=200)
 
 class Appointment(models.Model):
+    APPOINTMENT_STATUSES = {
+        "booked" : "Booked",
+        "completed": "Completed",
+        "cancelled" : "Cancelled",
+        "rescheduled": "Rescheduled"
+    }
+
     provider = models.ForeignKey(Clinician, on_delete=models.CASCADE)
     client = models.ForeignKey(Patient, on_delete=models.CASCADE)
     date = models.DateField("Date scheduled")
     time = models.TimeField("Time scheduled")
+    status = models.CharField(max_length=15, default="booked",choices=APPOINTMENT_STATUSES)

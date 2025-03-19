@@ -14,7 +14,6 @@ import requests
 @api_view(["GET"])
 def get_clinicians(request):
     clinicians = Clinician.objects.all()
-    print(clinicians[0].__dict__)
     data = {}
     serializer = ClinicianSerializer(clinicians, many=True)
     print(serializer.data)
@@ -24,13 +23,13 @@ def get_clinicians(request):
 # creates a new clinician object
 @api_view(["POST"])
 def create_clinician(request):
+    # TODO validate NPI here with requests
     if request.method == "POST":
         serializer = ClinicianSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
+    return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
 
 # creates, updates and deletes any clinician object
 @api_view(["GET", "PUT", "DELETE"])
@@ -70,23 +69,28 @@ def create_appointment(request):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
+    return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
 
 
 # creates, updates and deletes any appointment object
 @api_view(["GET", "PUT", "DELETE"])
 def get_update_and_delete_appointment(request, id):
     if request.method == "GET":
-        print("get")
-    elif request.method == "POST":
-        print("post")
+        appointment = get_object_or_404(Appointment, id=id)
+        serializer = AppointmentSerializer(appointment)
+        return Response(serializer.data)
     elif request.method == "PUT":
-        print("put")
+        appointment = get_object_or_404(Appointment, id=id)
+        serializer = AppointmentSerializer(appointment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
     elif request.method == "DELETE":
-        print("delete")
-    
-    # return Response()
+        appointment = get_object_or_404(Appointment, id=id)
+        appointment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
 
 # gets and returns all patient object data
 @api_view(["GET"])
@@ -94,7 +98,7 @@ def get_patients(request):
     patients = Patient.objects.all()
     data = {}
     serializer = PatientSerializer(patients, many=True)
-    data['appointments'] = serializer.data
+    data['clients'] = serializer.data
     return Response(data)
 
 # creates a new patient object
@@ -105,20 +109,25 @@ def create_patient(request):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
+    return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
 
 
 # creates, updates and deletes any patient object
 @api_view(["GET", "PUT", "DELETE"])
 def get_update_and_delete_patient(request, id):
     if request.method == "GET":
-        print("get")
-    elif request.method == "POST":
-        print("post")
+        patient = get_object_or_404(Patient, id=id)
+        serializer = PatientSerializer(patient)
+        return Response(serializer.data)
     elif request.method == "PUT":
-        print("put")
+        patient = get_object_or_404(Patient, id=id)
+        serializer = PatientSerializer(patient, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
     elif request.method == "DELETE":
-        print("delete")
-    
-    # return Response()
+        patient = get_object_or_404(Patient, id=id)
+        patient.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
