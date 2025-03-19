@@ -2,6 +2,58 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import axios from "axios"
+
+const client = axios.create({
+	baseURL: "http://127.0.0.1:8000/",
+	headers: {
+		"Content-Type": "application/json"
+	}
+})
+
+async function apiGetRequest(url) {
+	try {
+		const response = await client.get(url);
+		return response.data;
+
+	} catch (error) {
+		console.error(error.message)
+		throw new Error(error.message)
+	}
+}
+
+async function apiPostRequest(url, data) {
+	try {
+		const response = await client.post(url, data);
+		return response.data;
+
+	} catch (error) {
+		console.error(error.message)
+		throw new Error(error.message)
+	}
+}
+
+async function apiDeleteRequest(url) {
+	try {
+		const response = await client.delete(url);
+		return response.data;
+
+	} catch (error) {
+		console.error(error.message)
+		throw new Error(error.message)
+	}
+}
+
+async function apiPutRequest(url, data) {
+	try {
+		const response = await client.put(url, data);
+		return response.data;
+
+	} catch (error) {
+		console.error(error.message)
+		throw new Error(error.message)
+	}
+}
 
 function App() {
   const [count, setCount] = useState(0)
