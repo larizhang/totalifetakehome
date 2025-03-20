@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import React, { useEffect, useState } from 'react';
 import { apiGetRequest } from './API';
+import { Box, Button, TextField } from '@mui/material';
 
 function createData(id, provider, npi, client, date, time, status) {
     return { id ,provider, npi, client, date, time, status};
@@ -19,31 +20,64 @@ const rows = [
     createData(2, 'David Jones', 1234567890,'Client 2', "2025-03-19", "10:58:06", "booked"),
 ];
 
+// creates the appointment table component
 export default function AppTable() {
     const [appointments, setAppointments] = useState([]);
+    const [originalApps, setOriginal] = useState([]);
 
+    // fetch appointment data from API and populate the table rows below
     useEffect(() => {
         apiGetRequest('/api/appointments/')
-            .then((data) => {
-                setAppointments(data.appointments);
-                console.log(data);
-            })
-            .catch((error) => {
-                console.log(error.message);
-            });
+        .then((data) => {
+            // save two copies, one set for display/filters and the other the original data
+            setAppointments(data.appointments);
+            setOriginal(data.appointments);
+            console.log(data);
+        })
+        .catch((error) => {
+            console.log(error.message);
+        });
     }, []);
+
+    // filter appointments based on dates given
+    const handleTimeFilter = (event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        const firstDate = new Date(data.get("first_date")+"T00:00:00");
+        const secondDate = new Date(data.get("last_date")+"T00:00:00");
+        let newApps = appointments.slice();
+        for (let i = 0; i < newApps.length; i++) {
+            const val = new Date(newApps[i].date);
+            if (val < firstDate || val > secondDate) {
+                newApps.splice(i, 1);
+            }
+        }
+        setAppointments(newApps);
+    }
+
+    // reset the filter with original data
+    const handleResetFilter = (event) => {
+        event.preventDefault();
+        setAppointments(originalApps);
+    }
     
-    return (
+    return (        
         <TableContainer component={Paper}>
-            <Typography
-                variant="h5"
-                component="div"
-            >
-                Appointments
-            </Typography>
-            <Table sx={{ minWidth: 900 }} aria-label="simple table">
+            {/* Title of Table */}
+            <div className='italic text-sky-600'>
+               <Typography
+                    variant="h5"
+                    component="div"
+                >
+                    Appointments
+                </Typography> 
+            </div>
+            {/* Table itself */}
+            <Table sx={{ minWidth: 900 }}>
                 <TableHead>
-                    <TableRow>
+                    <TableRow 
+                        sx={{textDecoration: 'underline'}}
+                    >
                         <TableCell>Provider</TableCell>
                         <TableCell>Provider NPI</TableCell>
                         <TableCell>Client</TableCell>
@@ -83,6 +117,54 @@ export default function AppTable() {
                     )}
                 </TableBody>
             </Table>
+
+            {/* Set up for the Time Filter */}
+            <div className='text-sky-600'>
+                <Typography
+                    variant="h8"
+                    component="div"
+                >
+                    Time Range Filter
+                </Typography>
+            </div>
+            
+            <Box
+                component="form"
+                onSubmit={handleTimeFilter}
+                noValidate
+            >
+                <TextField
+                    margin="normal"
+                    required
+                    id="first_date"
+                    label="From Date (YYYY-MM-DD)"
+                    name="first_date"
+                    autoComplete="From Date"
+                    autoFocus
+                />
+                <TextField
+                    margin="normal"
+                    required
+                    id="last_date"
+                    label="To Date (YYYY-MM-DD)"
+                    name="last_date"
+                    autoComplete="To Date"
+                    autoFocus
+                />
+                <Button variant='contained' type='submit' sx={{ mt: 3, mb: 2 }}>
+                    Filter
+                </Button>
+            </Box>
+
+            <Box
+                component="form"
+                onSubmit={handleResetFilter}
+                noValidate
+            >
+                <Button variant='contained' type='submit' sx={{ mt: 3, mb: 2 }}>
+                    Reset
+                </Button>   
+            </Box>
         </TableContainer>
     );
 }

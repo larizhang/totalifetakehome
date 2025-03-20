@@ -7,6 +7,7 @@ const client = axios.create({
     }
 })
 
+// wraps the get request to make it nicer for use in functions
 async function apiGetRequest(url) {
     try {
         const response = await client.get(url);
