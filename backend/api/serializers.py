@@ -1,13 +1,17 @@
 from rest_framework import serializers
 from .models import Clinician, Appointment, Patient
 
-class ClinicianSerializer(serializers.Serializer):
+class ClinicianSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     first_name = serializers.CharField(max_length=50)
     last_name = serializers.CharField(max_length=50)
     state = serializers.CharField(max_length=30)
     npi = serializers.IntegerField()
     email = serializers.EmailField()
+
+    class Meta:
+        model = Clinician
+        fields = "__all__"
 
     # creates and returns the clinician object
     def create(self, validated_data):
@@ -35,13 +39,17 @@ class ClinicianSerializer(serializers.Serializer):
         instance.save()
         return instance
     
-class PatientSerializer(serializers.Serializer):
+class PatientSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     first_name = serializers.CharField(max_length=50)
     last_name = serializers.CharField(max_length=50)
     dob = serializers.DateField()
     email = serializers.EmailField()
     address = serializers.CharField(max_length=200)
+
+    class Meta:
+        model = Patient
+        fields = "__all__"
 
     # ensures email is unique for patient
     def validate_email(self, value):
@@ -63,20 +71,19 @@ class PatientSerializer(serializers.Serializer):
         instance.save()
         return instance
 
-class AppointmentSerializer(serializers.Serializer):
+class AppointmentSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
-    provider = serializers.SerializerMethodField()
-    client = serializers.SerializerMethodField()
+    provider = ClinicianSerializer()
+    client = PatientSerializer()
     date = serializers.DateField()
     time = serializers.TimeField()
     status = serializers.ChoiceField(choices=Appointment.APPOINTMENT_STATUSES)
 
-    # returns the nested clinician object
-    def get_provider(self, obj):
-        provider = ClinicianSerializer(obj.provider).data
-        return provider
-    
-    # returns the nested client object
-    def get_client(self, obj):
-        client = PatientSerializer(obj.client).data
-        return client
+    # broken at the moment, cannot nest objects properly without creating new patient/clinician objects
+    # addition through the admin terminal still works
+    class Meta:
+        model = Appointment
+        fields = "__all__"
+
+    def create(self, validated_data):
+        return Appointment.objects.create(**validated_data)

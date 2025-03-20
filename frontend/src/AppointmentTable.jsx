@@ -10,16 +10,6 @@ import React, { useEffect, useState } from 'react';
 import { apiGetRequest } from './API';
 import { Box, Button, TextField } from '@mui/material';
 
-function createData(id, provider, npi, client, date, time, status) {
-    return { id ,provider, npi, client, date, time, status};
-}
-
-// delete this later
-const rows = [
-    createData(1, 'Larissa Zhang', 1234567890, "Client 1", "2025-03-19", "10:58:06", "booked"),
-    createData(2, 'David Jones', 1234567890,'Client 2', "2025-03-19", "10:58:06", "booked"),
-];
-
 // creates the appointment table component
 export default function AppTable() {
     const [appointments, setAppointments] = useState([]);
@@ -87,18 +77,6 @@ export default function AppTable() {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rows.map((row) => (
-                        // delete this temp information later
-                        <TableRow key={row.id}>
-                            <TableCell>{row.provider}</TableCell>
-                            <TableCell>{row.npi}</TableCell>
-                            <TableCell>{row.client}</TableCell>
-                            <TableCell>{row.date}</TableCell>
-                            <TableCell>{row.time}</TableCell>
-                            <TableCell>{row.status}</TableCell>
-                        </TableRow>
-                    ))}
-
                     {appointments.map((appointment) => {
                         const providerName = appointment.provider.first_name + " " + appointment.provider.last_name;
                         const clientName = appointment.client.first_name + " " + appointment.client.last_name;

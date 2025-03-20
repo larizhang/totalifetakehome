@@ -22,14 +22,12 @@ def get_clinicians(request):
 # creates a new clinician object
 @api_view(["POST"])
 def create_clinician(request):
-    # TODO validate NPI here with requests
     if request.method == "POST":
         serializer = ClinicianSerializer(data=request.data)
         if serializer.is_valid():
             npi_request = requests.get("https://npiregistry.cms.hhs.gov/api/?number={number}&version=2.1".format(number = serializer.validated_data["npi"]))
             npi_data = json.loads(npi_request.text)
             if npi_data["result_count"] == 1:
-                # number = npi_data["results"][0]["number"]
                 state = npi_data["results"][0]["addresses"][0]["state"]
                 first_name = npi_data["results"][0]["basic"]["first_name"].lower().capitalize()
                 last_name = npi_data["results"][0]["basic"]["last_name"].lower().capitalize()
@@ -58,6 +56,21 @@ def get_update_and_delete_clinician(request, id):
         clinician = get_object_or_404(Clinician, id=id)
         serializer = ClinicianSerializer(clinician, data=request.data)
         if serializer.is_valid():
+            npi_request = requests.get("https://npiregistry.cms.hhs.gov/api/?number={number}&version=2.1".format(number = serializer.validated_data["npi"]))
+            npi_data = json.loads(npi_request.text)
+            if npi_data["result_count"] == 1:
+                state = npi_data["results"][0]["addresses"][0]["state"]
+                first_name = npi_data["results"][0]["basic"]["first_name"].lower().capitalize()
+                last_name = npi_data["results"][0]["basic"]["last_name"].lower().capitalize()
+                if first_name != serializer.validated_data["first_name"]:
+                    return Response(status=status.HTTP_400_BAD_REQUEST, data={"first_name": ["First name does not match registry information"]})
+                elif last_name != serializer.validated_data["last_name"]:
+                    return Response(status=status.HTTP_400_BAD_REQUEST, data={"last_name": ["Last name does not match registry information"]})
+                elif state != serializer.validated_data["state"]:
+                    return Response(status=status.HTTP_400_BAD_REQUEST, data={"state": ["State does not match registry information"]})
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={"npi": ["NPI could not be found in registry"]})
+
             serializer.save()
             return Response(serializer.data)
     elif request.method == "DELETE":

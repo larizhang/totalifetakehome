@@ -1,7 +1,5 @@
 from django.db import models
 
-# TODO SET many attributes to NOT NULL
-
 class Clinician(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)

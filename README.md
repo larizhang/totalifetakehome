@@ -22,7 +22,7 @@ npm install
 npm run build
 ```
 
-Navigate to the backend to set up the database/superuser(check this again pls):
+Navigate to the backend to set up the database/superuser:
 
 ```
 cd backend/
